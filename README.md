@@ -34,13 +34,13 @@ Oracle-ın standart **HR (Human Resources)** nümunə sxemi istifadə olunub. Sx
 4. Departament üzrə ümumi maaş xərci (`SUM(SALARY)`) hesablanıb ki, hansı departamentin büdcədə ən böyük paya sahib olduğu görünsün
 5. Nəticələr Tableau-da 4 qrafikli dashboard-da vizuallaşdırılıb
 
-SQL sorğularının hamısı [`hr_salary_analysis.sql`](./hr_salary_analysis.sql) faylındadır.
+SQL sorğularının hamısı [`hr_salary_analysis.sql`](./Hr_Salary_Analysis.sql) faylındadır.
 
 ## Dashboard
 
-Dashboard-u interaktiv görmək üçün [`dashboard.twbx`](./dashboard.twbx) faylını endirib Tableau Desktop-da açın (Tableau Public pulsuz mövcuddur).
+Dashboard-u interaktiv görmək üçün [`dashboard.twbx`](./dashboard_tableau.twbx) faylını endirib Tableau Desktop-da açın (Tableau Public pulsuz mövcuddur).
 
-![HR Salary Dashboard](./dashboard.png)
+![HR Salary Dashboard](./dashboard_screenshot.png)
 
 Dashboard 4 hissədən ibarətdir:
 - **Avg Salary by Department** – departament üzrə orta maaş müqayisəsi
