@@ -1,57 +1,63 @@
-# HR-Salary-Analysis
-SQL &amp; Tableau analysis of employee salary equity across departments
--- HR Salary Analysis
--- Departament ve vezife uzre maas berabersizliyi analizi
--- Oracle HR schema
+# HR Salary Analysis
 
+SQL və Tableau istifadə edərək şirkət daxilində maaş bərabərsizliyinin departament, vəzifə və təcrübə üzrə analizi.
 
--- 1. Departament uzre orta, min, max maas
-SELECT 
-    d.DEPARTMENT_NAME,
-    COUNT(e.EMPLOYEE_ID) AS TOTAL_EMPLOYEES,
-    ROUND(AVG(e.SALARY), 2) AS AVG_SALARY,
-    MIN(e.SALARY) AS MIN_SALARY,
-    MAX(e.SALARY) AS MAX_SALARY
-FROM HR.EMPLOYEES e
-JOIN HR.DEPARTMENTS d 
-    ON e.DEPARTMENT_ID = d.DEPARTMENT_ID
-GROUP BY d.DEPARTMENT_NAME
-ORDER BY AVG_SALARY DESC;
+## Məqsəd
 
+Bu layihə aşağıdakı sualları cavablandırır:
 
--- 2. Job title uzre maas gap-i (max-min ferqi)
-SELECT 
-    j.JOB_TITLE,
-    COUNT(e.EMPLOYEE_ID) AS TOTAL_EMPLOYEES,
-    ROUND(AVG(e.SALARY), 2) AS AVG_SALARY,
-    MAX(e.SALARY) - MIN(e.SALARY) AS SALARY_GAP
-FROM HR.EMPLOYEES e
-JOIN HR.JOBS j 
-    ON e.JOB_ID = j.JOB_ID
-GROUP BY j.JOB_TITLE
-ORDER BY SALARY_GAP DESC;
+- Hansı departamentdə orta maaş ən yüksəkdir?
+- Hansı vəzifədə (job title) maaş fərqi (min-max gap) ən böyükdür və niyə?
+- Təcrübə (iş stажı) ilə maaş arasında əlaqə varmı?
+- Şirkətin ümumi maaş büdcəsi departamentlər arasında necə bölünür?
 
+## Verilənlər bazası
 
--- 3. Tecrube ile maas elaqesi
-SELECT 
-    e.EMPLOYEE_ID,
-    e.FIRST_NAME || ' ' || e.LAST_NAME AS FULL_NAME,
-    d.DEPARTMENT_NAME,
-    ROUND(MONTHS_BETWEEN(SYSDATE, e.HIRE_DATE)/12, 1) AS YEARS_EXPERIENCE,
-    e.SALARY
-FROM HR.EMPLOYEES e
-JOIN HR.DEPARTMENTS d 
-    ON e.DEPARTMENT_ID = d.DEPARTMENT_ID
-ORDER BY YEARS_EXPERIENCE DESC;
+Oracle-ın standart **HR (Human Resources)** nümunə sxemi istifadə olunub. Sxem aşağıdakı cədvəllərdən ibarətdir:
 
+- `EMPLOYEES` – 107 işçi (ad, maaş, işə giriş tarixi, vəzifə, departament)
+- `DEPARTMENTS` – 27 departament
+- `JOBS` – 19 vəzifə (hər biri üçün min/max maaş aralığı)
+- `JOB_HISTORY` – işçilərin vəzifə dəyişikliyi tarixçəsi
+- `LOCATIONS`, `COUNTRIES`, `REGIONS` – coğrafi məlumat
 
--- 4. Departament uzre umumi maas xerci (treemap ucun)
-SELECT 
-    d.DEPARTMENT_NAME,
-    SUM(e.SALARY) AS TOTAL_SALARY_COST,
-    COUNT(e.EMPLOYEE_ID) AS TOTAL_EMPLOYEES
-FROM HR.EMPLOYEES e
-JOIN HR.DEPARTMENTS d 
-    ON e.DEPARTMENT_ID = d.DEPARTMENT_ID
-GROUP BY d.DEPARTMENT_NAME
-ORDER BY TOTAL_SALARY_COST DESC;
+## İstifadə olunan alətlər
+
+- **Oracle SQL** – analitik sorğular (JOIN, GROUP BY, aggregate funksiyalar)
+- **Tableau** – dashboard və vizuallaşdırma
+
+## Metodologiya
+
+1. `EMPLOYEES`, `DEPARTMENTS` və `JOBS` cədvəlləri SQL-də birləşdirilib, departament və vəzifə üzrə maaş göstəriciləri (orta, minimum, maksimum) hesablanıb
+2. Hər vəzifə daxilində maaş fərqini (`MAX(SALARY) - MIN(SALARY)`) tapmaq üçün ayrıca sorğu yazılıb
+3. `HIRE_DATE` əsasında işçilərin təcrübə ili hesablanıb və maaşla müqayisə olunub
+4. Departament üzrə ümumi maaş xərci (`SUM(SALARY)`) hesablanıb ki, hansı departamentin büdcədə ən böyük paya sahib olduğu görünsün
+5. Nəticələr Tableau-da 4 qrafikli dashboard-da vizuallaşdırılıb
+
+SQL sorğularının hamısı [`hr_salary_analysis.sql`](./hr_salary_analysis.sql) faylındadır.
+
+## Dashboard
+
+Dashboard-u interaktiv görmək üçün [`dashboard.twbx`](./dashboard.twbx) faylını endirib Tableau Desktop-da açın (Tableau Public pulsuz mövcuddur).
+
+![HR Salary Dashboard](./dashboard.png)
+
+Dashboard 4 hissədən ibarətdir:
+- **Avg Salary by Department** – departament üzrə orta maaş müqayisəsi
+- **Salary Gap by Job Title** – hər vəzifə daxilində maaş fərqi
+- **Years Experience vs Salary** – təcrübə ilə maaş arasındakı əlaqə (departament üzrə rəngli)
+- **Salary Distribution by Department** (Treemap) – departamentlərin ümumi maaş büdcəsindəki payı
+
+## Əsas nəticələr
+
+**1. Executive departamenti ən yüksək orta maaşa malikdir (~19,333)**, amma ən az sayda işçini əhatə edir. Şirkətin ən böyük işçi qrupu **Shipping** departamentindədir (45 nəfər), lakin bu departamentdə orta maaş ən aşağıdır (~3,475).
+
+**2. Sales Representative vəzifəsində maaş fərqi ən böyükdür.** Eyni vəzifədə işləyən işçilər arasında əhəmiyyətli maaş fərqi olması, bu vəzifədə komissiya və ya təcrübə əsaslı fərqləndirmənin mövcud olduğunu göstərir.
+
+**3. Təcrübə ilə maaş arasında gözlənilən qədər güclü əlaqə yoxdur.** Bəzi uzun müddət işləyən işçilər nisbətən aşağı maaş alır, bu da onu göstərir ki, **maaşı müəyyən edən əsas amil departament/vəzifədir, təcrübə ili deyil**.
+
+**4. Maaş büdcəsi bərabər bölünməyib** – Executive və Finance departamentləri ümumi maaş xərcinin böyük hissəsini təşkil edir, halbuki bir çox kiçik departament büdcənin cüzi faizini alır.
+
+## Ümumi nəticə
+
+Şirkətdə maaş bərabərsizliyi əsasən **departament və vəzifə səviyyəsindən** qaynaqlanır, işçinin təcrübə ilindən deyil. Bu, HR strategiyası qurarkən diqqət yetirilməli əsas məqamdır.
